@@ -1,0 +1,226 @@
+<!doctype html>
+<html lang="en">
+
+  <head>
+    <meta charset="utf-8">
+
+    <title>Streaming Commutative Replicated Data</title>
+
+    <meta name="description" content="A presentation about node.js">
+    <meta name="author" content="Mike Brevoort">
+
+    <meta name="apple-mobile-web-app-capable" content="yes" />
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
+
+    <link rel="stylesheet" href="css/reveal.min.css">
+    <link rel="stylesheet" href="css/theme/default.css" id="theme">
+
+    <!-- For syntax highlighting -->
+    <link rel="stylesheet" href="lib/css/zenburn.css">
+
+    <!-- If the query includes 'print-pdf', use the PDF print sheet -->
+    <script>
+      document.write( '<link rel="stylesheet" href="css/print/' + ( window.location.search.match( /print-pdf/gi ) ? 'pdf' : 'paper' ) + '.css" type="text/css" media="print">' );
+    </script>
+
+    <link rel="stylesheet" href="css/humane.css">
+    <script src="js/humane.min.js"></script>
+    <script src="http://localhost:4444/socket.io/socket.io.js"></script>
+    <script>
+      var socket = io.connect();
+      socket.on('result', function (data) {
+        console.log(data);
+        humane.log(data.replace(/\n/g, '<br/>'), { timeout: 60000, clickToClose: true, addnCls: 'humane-bigbox' })
+      });
+
+      var runit = function (elemId) {
+        socket.emit('run', ['--harmony', '--use-strict', '-e', document.getElementById(elemId).textContent])
+      }
+    </script>
+    <style>
+      .hl1 { color: lightblue; }
+      .hl2 { color: darkkhaki; }
+      .hl3 { color: lightgoldenrodyellow; }
+    </style>
+
+    <!--[if lt IE 9]>
+    <script src="lib/js/html5shiv.js"></script>
+    <![endif]-->
+  </head>
+
+  <body>
+
+    <div class="reveal">
+
+      <!-- Any section element inside of this container is displayed as a slide -->
+      <div class="slides">
+
+        <section>
+          <h3>Streaming Commutative Replicated Data</h3>
+          <h4>
+            <img width="35" src="img/DenverJs_300.png" style="margin: 5px 5px 0 0;border:0;"/>
+            2 May 2013</h4>
+          <p>
+            <small>
+             <a href="http://about.me/mbrevoort">Mike Brevoort</a> / <a href="http://twitter.com/mbrevoort">@mbrevoort</a>
+            </small>
+          </p>
+        </section>
+
+        <section>
+          <h2>What is a CRDT?</h2>
+          <h3>Convergent or commutative replicated data type</h3>
+          <p>
+            A data type designed so that operations on it between replicas <span class="hl1">commute</span> and produce the <span class="hl2">same result</span> <span class="hl3">independant of the order</span> in which they are applied.
+          </p>
+        </section>
+
+        <section>
+            <h2>Eventually consistent</h2>
+        </section>
+
+        <section>
+            <h2>Not based on consensus</h2>
+        </section>
+
+        <section>
+          <h2>State-based vs Operation-based</h2>
+        </section>
+
+        <section>
+            <h2><span class="hl1">Tolerant</span> to <span class="hl2">network latency</span>, faults and <span class="hl3">interuption</span></h2>
+        </section>
+
+        <section>
+          <h2>Perfect for 
+            <span class="hl1">collaborative</span>,
+            <span class="hl2">distributed</span> and
+            <span class="hl3">peer to peer</span> use cases</h2>
+        </section>
+
+        <section>
+          <h2>The Science</h2>
+          <img src="img/crdt_paper_cover.png" alt="CRTD Paper Cover"/>
+          <p>
+            <a href="http://hal.upmc.fr/docs/00/55/55/88/PDF/techreport.pdf">http://hal.upmc.fr/docs/00/55/55/88/PDF/techreport.pdf</a>
+          </p>
+        </section>
+
+        <section>
+          <h2>A Javascript Implementation</h2>
+          <p>as a stream interface</p>
+          <img src="img/dominictarr.jpg" alt="Dominic Tarr"/>
+          <p>
+            <a href="https://github.com/dominictarr/crdt">https://github.com/dominictarr/crdt</a>
+          </p>
+        </section>
+
+        <section>
+          <h2>A Simple Sample</h2>
+          <pre style="width: 54%; margin-right: 5px; float:left"><code>// server
+var net = require('net')
+var Doc = require('crdt').Doc
+
+var A = new Doc()
+
+net.createServer(function (stream) {
+  stream
+    .pipe(A.createStream())
+    .pipe(stream)
+})
+          </pre></code>
+          <pre style="width: 45%; float:left"><code>// client
+var net = require('net')
+var Doc = require('crdt').Doc
+
+var A = new Doc()
+
+var stream
+(stream = net.connect())
+  .pipe(A.createStream())
+  .pipe(stream)
+
+          </pre></code>
+        </section>
+
+        <section>
+          <h2>To the browser!</h2>
+          <pre><code>// server
+var board = new crdt.Doc()
+
+// shoe is a streams wrapper around sockjs (websockets)
+shoe(function (sock) {
+  var mx;
+  sock.pipe(mx = new MuxDemux(function (s) {
+    s.pipe(board.createStream()).pipe(s)
+  })).pipe(sock)
+}).install(server.listen(3000), '/shoe')
+          </pre></code>
+          <pre><code>// client
+var board = new crdt.Doc()
+
+var stream = shoe('/shoe')
+var mx = MuxDemux()
+stream.pipe(mx)
+      .pipe(stream)
+var ds = board.createStream()
+ds.pipe(mx.createStream({type: 'board'}))
+  .pipe(ds)
+          </code></pre>
+        </section>
+
+        <section><h1>Demo!</h1></section>
+
+        <section>
+          <iframe src="/" width=430 height=510></iframe>
+          <iframe src="/" width=430 height=510></iframe>
+        </section>
+
+        <section>
+          <h1>THANKS!</h1>
+          <br/><br/>
+          <p>
+            Mike Brevoort<br/>
+            <img src="img/twitter.png" style="height: 40px;border:0; background:inherit; box-shadow: inherit; margin:5px;"/><a href="http://twitter.com/mbrevoort">@mbrevoort</a><br/>
+          </p>
+          <p>
+            <a href="https://github.com/mbrevoort/crdt-demo">https://github.com/mbrevoort/crdt-demo</a>
+          </p>
+        </section>
+
+      </div>
+
+    </div>
+
+    <script src="lib/js/head.min.js"></script>
+    <script src="js/reveal.min.js"></script>
+
+    <script>
+
+      // Full list of configuration options available here:
+      // https://github.com/hakimel/reveal.js#configuration
+      Reveal.initialize({
+        controls: true,
+        progress: true,
+        history: true,
+        center: true,
+
+        theme: Reveal.getQueryHash().theme, // available themes are in /css/theme
+        transition: Reveal.getQueryHash().transition || 'default', // default/cube/page/concave/zoom/linear/none
+
+        // Optional libraries used to extend on reveal.js
+        dependencies: [
+          { src: 'lib/js/classList.js', condition: function() { return !document.body.classList; } },
+          { src: 'plugin/markdown/showdown.js', condition: function() { return !!document.querySelector( '[data-markdown]' ); } },
+          { src: 'plugin/markdown/markdown.js', condition: function() { return !!document.querySelector( '[data-markdown]' ); } },
+          { src: 'plugin/highlight/highlight.js', async: true, callback: function() { hljs.initHighlightingOnLoad(); } },
+          { src: 'plugin/zoom-js/zoom.js', async: true, condition: function() { return !!document.body.classList; } },
+          { src: 'plugin/notes/notes.js', async: true, condition: function() { return !!document.body.classList; } }
+          // { src: 'plugin/remotes/remotes.js', async: true, condition: function() { return !!document.body.classList; } }
+        ]
+      });
+
+    </script>
+
+  </body>
+</html>

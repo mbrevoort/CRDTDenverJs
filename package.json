@@ -1,0 +1,23 @@
+{
+  "name": "crdt-demo",
+  "private": true,
+  "version": "0.0.0",
+  "description": "A Commutative Replicated Data Type demo",
+  "main": "app.js",
+  "scripts": {
+    "start": "browserify -r crdt -r mux-demux -r shoe > public/js/bundle.js && node app.js"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git://github.com/mbrevoort/crdt-demo.git"
+  },
+  "author": "Mike Brevoort <mike@brevoort.com>",
+  "license": "BSD",
+  "dependencies": {
+    "crdt": "~3.5.1",
+    "node-static": "~0.6.9",
+    "shoe": "0.0.10",
+    "mux-demux": "~3.6.3",
+    "browserify": "~2.13.2"
+  }
+}

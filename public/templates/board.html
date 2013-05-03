@@ -1,0 +1,11 @@
+<div class="board">
+	<div class="piece" style="background-color: {{piece.state.color}}"
+	 	ng-repeat="piece in board" ng-click="click(piece)">
+		{{piece.state.count}}
+	</div>
+</div>
+<div class="controls">
+	<p>{{getStateLabel()}}</p>
+	<button type="button" ng-click="toggleConnect()">{{getButtonLabel()}}</button>
+	<button type="button" ng-click="newBoard()">Reset</button>
+</div>
